@@ -4,7 +4,7 @@
 
 # Server configuraiton
 vpnname="" # Give a lowercase simple VPN name
-localip="" # Listening IP local and public
+serverip="" # Listening IP local and public
 
 # Both configuration
 port="1194" # Default 1194
@@ -14,14 +14,14 @@ vpnsubnet="10.8.0.0" # VPN subnet (IP range)
 vpnnetmask="255.255.255.0" # VPN Netmask
 
 # Client configuration
-clientconnectip="${localip}" # The IP clients will connect to; default set to localip assuming it is public or reachable locally
+clientconnectip="${serverip}" # The IP clients will connect to; default set to serverip assuming it is public or reachable locally
 
 # Firewall configuration
-failover="${localip}" # Server listening public IP
+failover="${serverip}" # Server listening public IP
 vpnnetwork="${vpnsubnet}/24" # VPN Network, default 10.8.0.0/24
 vpnclient="10.8.0.2" # Expected failover IP
 
-if [ -z "${vpnname}" ]||[ -z "${localip}" ]; then
+if [ -z "${vpnname}" ]||[ -z "${serverip}" ]; then
 	echo "This script is non-interactive, please edit the configuration at its beginning."
 	exit
 fi
@@ -37,8 +37,9 @@ chown -R root:root /etc/openvpn/easy-rsa/
 # Key generation
 echo "Building keys (might take a while)"
 cd /etc/openvpn/easy-rsa/ || echo "Cannot cd into easy-rsa dir"; exit
+# shellcheck disable=SC1091
 source vars
-./clean-all
+./clean-allf
 ./build-dh
 ./pkitool --initca
 ./pkitool --server server
@@ -57,13 +58,15 @@ mkdir -pv /etc/openvpn/jail/tmp
 
 echo "Generating config file: ${vpnname}.conf"
 
-echo "# Local listening IP
-local ${localip}
+echo "# OpenVPN server config
+
+# Local listening IP
+local ${serverip}
 # Local listening port (default 1194)
 port ${port}
 # Protocol: udp/tcp
 proto ${proto}
-# Routing: routed tunnel (tun) or ethernet tunnel (tap)
+# Internal routing: routed tunnel (tun) or ethernet tunnel (tap)
 dev ${routing}
 # VPN Subnet
 server ${vpnsubnet} ${vpnnetmask}
@@ -163,8 +166,53 @@ chmod +x "/etc/openvpn/firewall_${vpnname}.sh"
 
 # Client config
 echo "Generating client config"
+touch "/etc/openvpn/client/${vpnname}.conf"
+echo "# OpenVPN client config
+client
 
+# Server hostname/IP and port
+remote ${clientconnectip} ${port}
+# Protocol: udp/tcp
+proto ${proto}
+# Internal routing: routed tunnel (tun) or ethernet tunnel (tap)
+dev ${routing}
+# How many times try to resolve the hostname
+resolv-retry infinite
+# No need to bind to a local port
+nobind
+# Used cipher from: BF-CBC; AES-128-CBC; AES-256-CBC; DES-EDE3-CBC
+cipher AES-256-CBC
+# Compression
+comp-lzo no
+# Disable buffering
+sndbuf 0
+rcvbuf 0
 
+# Restrict VPN rights...
+user nobody
+group nogroup
+# ...and avoid issues upon restart
+persist-key
+persist-tun
+
+# Certificates
+ca client/${vpnname}/ca.crt
+cert client/${vpnname}/${vpnname}-client.crt
+key client/${vpnname}/${vpnname}-client.key
+tls-auth ${vpnname}-client/ta.key 1
+ns-cert-type server
+
+# Logging
+log-append  /var/log/openvpn.log
+# Set log file verbosity
+verb 3
+# Silence repeating messages
+mute 20" > "/etc/openvpn/client/${vpnname}.conf"
+
+echo "Securing directories"
+chown -R root:root /etc/openvpn
+chmod 750 /etc/openvpn/server /etc/openvpn/client /etc/openvpn/easy-rsa
+mv /etc/openvpn/easy-rsa /etc/openvpn/easy-rsa_${vpnname}
 
 # Starting services
 echo "Stop and start new vpn instance"
