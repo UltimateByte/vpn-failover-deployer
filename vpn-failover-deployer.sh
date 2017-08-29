@@ -14,7 +14,7 @@ vpnsubnet="10.8.0.0" # VPN subnet (IP range)
 vpnnetmask="255.255.255.0" # VPN Netmask
 
 # Client configuration
-clientconnectip="${localip}# The IP clients will connect to; default set to localip assuming it is public or reachable locally
+clientconnectip="${localip}" # The IP clients will connect to; default set to localip assuming it is public or reachable locally
 
 # Firewall configuration
 failover="${localip}" # Server listening public IP
