@@ -36,7 +36,7 @@ chown -R root:root /etc/openvpn/easy-rsa/
 
 # Key generation
 echo "Building keys (might take a while)"
-cd /etc/openvpn/easy-rsa/
+cd /etc/openvpn/easy-rsa/ || echo "Cannot cd into easy-rsa dir"; exit
 source vars
 ./clean-all
 ./build-dh
@@ -55,10 +55,64 @@ cp keys/ca.crt keys/ta.key keys/${vpnname}-client.crt keys/${vpnname}-client.key
 echo "Creating jail"
 mkdir -pv /etc/openvpn/jail/tmp
 
+echo "Generating config file: ${vpnname}.conf"
+
+echo "# Local listening IP
+local ${localip}
+# Local listening port (default 1194)
+port ${port}
+# Protocol: udp/tcp
+proto ${proto}
+# Routing: routed tunnel (tun) or ethernet tunnel (tap)
+dev ${routing}
+# VPN Subnet
+server ${vpnsubnet} ${vpnnetmask}
+# Used cipher from: BF-CBC; AES-128-CBC; AES-256-CBC; DES-EDE3-CBC
+cipher AES-256-CBC
+# Pïng every X seconds and assume down after Y seconds
+keepalive 10 60
+# Compression
+comp-lzo no
+# Disable buffering
+sndbuf 0
+rcvbuf 0
+
+# Restrict VPN rights...
+user nobody
+group nogroup
+chroot /etc/openvpn/jail
+# ...and avoid issues upon restart
+persist-key
+persist-tun
+
+# Try to maintain the same IP for clients
+ifconfig-pool-persist ipp.txt
+# Route clients traffic through VPN
+push \"redirect-gateway def1 bypass-dhcp\"
+# Push OpenDNS DNS
+push \"dhcp-option DNS 208.67.222.222\"
+push \"dhcp-option DNS 208.67.220.220\"
+
+# Certificates
+ca server/${vpnname}/ca.crt
+cert server/${vpnname}/server.crt
+key server/${vpnname}/server.key
+dh server/${vpnname}/dh2048.pem
+tls-auth server/${vpnname}/ta.key 0
+
+# Short status log
+status ${vpnname}-status.log
+# Full log
+log-append /var/log/openvpn-cloud.log
+# Verbosity: 0 lowest, 9 max
+verb 6
+# Silence repeated messages after X occurrences
+mute 20" > /etc/openvpn/${vpnname}.conf
+
 # Generating firewall script
 touch "/etc/openvpn/firewall_${vpnname}.sh"
-echo "#!/bin/bash
-# This simple script is intended to route traffic from a VPN through a failover IP
+echo '#!/bin/bash' > "/etc/openvpn/firewall_${vpnname}.sh"
+echo "# This simple script is intended to route traffic from a VPN through a failover IP
 
 # Script
 
@@ -104,8 +158,17 @@ if [ \"$1\" == \"disable\" ];then
 
 	echo \"[OK] Job done\"
 	exit
-fi\" > "/etc/openvpn/firewall_${vpnname}.sh"
+fi\"" >> "/etc/openvpn/firewall_${vpnname}.sh"
 chmod +x "/etc/openvpn/firewall_${vpnname}.sh"
 
+# Client config
+echo "Generating client config"
 
-systemctl restart openvpn@openvpn.service
+
+
+# Starting services
+echo "Stop and start new vpn instance"
+systemctl stop openvpn@${vpnname}.service
+systemctl start openvpn@${vpnname}.service
+echo "Enabling firewall redirect to failover"
+/etc/openvpn/firewall_${vpnname}.sh enable
