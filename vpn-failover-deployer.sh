@@ -36,10 +36,10 @@ chown -R root:root /etc/openvpn/easy-rsa/
 
 # Key generation
 echo "Building keys (might take a while)"
-cd /etc/openvpn/easy-rsa/ || echo "Cannot cd into easy-rsa dir"; exit
+cd /etc/openvpn/easy-rsa/ || exit
 # shellcheck disable=SC1091
 source vars
-./clean-allf
+./clean-all
 ./build-dh
 ./pkitool --initca
 ./pkitool --server server
@@ -119,17 +119,17 @@ echo "# This simple script is intended to route traffic from a VPN through a fai
 
 # Script
 
-if [ -z \"$1\" ]; then
+if [ -z \"\$1\" ]; then
         echo \"Info! Please specify enable or disable\"
         exit
 fi
-if [ \"$1\" != \"enable\" ]&&[ \"${1}\" != \"disable\" ];then
+if [ \"\$1\" != \"enable\" ]&&[ \"\${1}\" != \"disable\" ]; then
         echo \"Info! Please specify enable or disable\"
         exit
 fi
 
 # Enable rule
-if [ \"$1\" == \"enable\" ];then
+if [ \"\$1\" == \"enable\" ];then
 	echo \"Enable VPN rules\"
 	# Allow forward
 	echo \"Allowing forwarding\"
@@ -147,7 +147,7 @@ if [ \"$1\" == \"enable\" ];then
 fi
 
 # Disable rules
-if [ \"$1\" == \"disable\" ];then
+if [ \"\$1\" == \"disable\" ];then
 	echo \"Disable VPN rules\"
 	# Disallow forward
 	echo \"Disallow forwarding\"
@@ -161,7 +161,7 @@ if [ \"$1\" == \"disable\" ];then
 
 	echo \"[OK] Job done\"
 	exit
-fi\"" >> "/etc/openvpn/firewall_${vpnname}.sh"
+fi" >> "/etc/openvpn/firewall_${vpnname}.sh"
 chmod +x "/etc/openvpn/firewall_${vpnname}.sh"
 
 # Client config
