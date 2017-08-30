@@ -2,9 +2,10 @@
 # Deploy single client VPNs on failover IPs
 # Very useful for home servers
 
-# Server configuraiton
+# Server configuration (required)
 vpnname="" # Give a lowercase simple VPN name
 serverip="" # Listening IP local and public
+failover="" # VPN dedicated IP
 
 # Both configuration
 port="1194" # Default 1194
@@ -17,11 +18,10 @@ vpnnetmask="255.255.255.0" # VPN Netmask
 clientconnectip="${serverip}" # The IP clients will connect to; default set to serverip assuming it is public or reachable locally
 
 # Firewall configuration
-failover="${serverip}" # Server listening public IP
 vpnnetwork="${vpnsubnet}/24" # VPN Network, default 10.8.0.0/24
-vpnclient="10.8.0.2" # Expected failover IP
+vpnclient="10.8.0.2" # Expected VPN client IP
 
-if [ -z "${vpnname}" ]||[ -z "${serverip}" ]; then
+if [ -z "${vpnname}" ]||[ -z "${serverip}" ]||[ -z "${failover}" ]; then
 	echo "This script is non-interactive, please edit the configuration at its beginning."
 	exit
 fi
@@ -144,6 +144,7 @@ if [ \"\$1\" == \"enable\" ];then
 	# Anything traffic sent by the VPN network to outside the VPN network is routed through the failover IP
 	iptables -t nat -A POSTROUTING -s \"${vpnnetwork}\" ! -d \"${vpnnetwork}\" -j SNAT --to-source \"${failover}\"
 	echo \"[OK] Job done\"
+	exit
 fi
 
 # Disable rules
@@ -218,5 +219,5 @@ mv /etc/openvpn/easy-rsa /etc/openvpn/easy-rsa_${vpnname}
 echo "Stop and start new vpn instance"
 systemctl stop openvpn@${vpnname}.service
 systemctl start openvpn@${vpnname}.service
-echo "Enabling firewall redirect to failover"
+echo "Enabling firewall redirect to failover and exit"
 /etc/openvpn/firewall_${vpnname}.sh enable
