@@ -36,6 +36,8 @@ chown -R root:root /etc/openvpn/easy-rsa/
 
 # Key generation
 echo "Building keys (might take a while)"
+echo "Copying openssl.cfg to easy-rsa"
+cp /etc/ssl/openssl.cnf /etc/openvpn/easy-rsa
 cd /etc/openvpn/easy-rsa/ || exit
 # shellcheck disable=SC1091
 source vars
@@ -143,7 +145,6 @@ if [ \"\$1\" == \"enable\" ];then
 	# Anything traffic sent by the VPN network to outside the VPN network is routed through the failover IP
 	iptables -t nat -A POSTROUTING -s \"${vpnnetwork}\" ! -d \"${vpnnetwork}\" -j SNAT --to-source \"${failover}\"
 	echo \"[OK] Job done\"
-	exit
 fi
 
 # Disable rules
@@ -165,7 +166,7 @@ fi" >> "/etc/openvpn/firewall_${vpnname}.sh"
 chmod +x "/etc/openvpn/firewall_${vpnname}.sh"
 
 # Client config
-echo "Generating client config"
+echo "Generating client config ${vpnname}.conf"
 touch "/etc/openvpn/client/${vpnname}.conf"
 echo "# OpenVPN client config
 client
