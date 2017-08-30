@@ -36,9 +36,8 @@ chown -R root:root /etc/openvpn/easy-rsa/
 
 # Key generation
 echo "Building keys (might take a while)"
-echo "Copying openssl.cfg to easy-rsa"
-cp /etc/ssl/openssl.cnf /etc/openvpn/easy-rsa
 cd /etc/openvpn/easy-rsa/ || exit
+cp /etc/ssl/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl.cnf
 # shellcheck disable=SC1091
 source vars
 ./clean-all
@@ -52,8 +51,8 @@ echo "Creating directories"
 mkdir -pv "/etc/openvpn/server/${vpnname}"
 mkdir -pv "/etc/openvpn/client/${vpnname}"
 echo "Copying keys"
-cp keys/ca.crt keys/ta.key keys/server.crt keys/server.key keys/dh2048.pem "/etc/openvpn/server/${vpnname}"
-cp keys/ca.crt keys/ta.key keys/${vpnname}-client.crt keys/${vpnname}-client.key "/etc/openvpn/client/${vpnname}"
+cp keys/ca.crt keys/ta.key keys/server.crt keys/server.key keys/dh2048.pem "/etc/openvpn/server/${vpnname}" || exit
+cp keys/ca.crt keys/ta.key keys/${vpnname}-client.crt keys/${vpnname}-client.key "/etc/openvpn/client/${vpnname}" || exit
 
 echo "Creating jail"
 mkdir -pv /etc/openvpn/jail/tmp
