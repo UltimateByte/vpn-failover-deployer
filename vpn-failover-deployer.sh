@@ -19,7 +19,7 @@ clientconnectip="${serverip}" # The IP clients will connect to; default set to s
 
 # Firewall configuration
 vpnnetwork="${vpnsubnet}/24" # VPN Network, default 10.8.0.0/24
-vpnclient="10.8.0.2" # Expected VPN client IP
+vpnclient="10.8.0.6" # Expected VPN client IP
 
 if [ -z "${vpnname}" ]||[ -z "${serverip}" ]||[ -z "${failover}" ]; then
 	echo "This script is non-interactive, please edit the configuration at its beginning."
@@ -200,7 +200,7 @@ persist-tun
 ca client/${vpnname}/ca.crt
 cert client/${vpnname}/${vpnname}-client.crt
 key client/${vpnname}/${vpnname}-client.key
-tls-auth ${vpnname}-client/ta.key 1
+tls-auth client/${vpnname}/ta.key 1
 ns-cert-type server
 
 # Logging
