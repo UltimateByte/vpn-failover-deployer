@@ -37,7 +37,7 @@ chown -R root:root /etc/openvpn/easy-rsa/
 # Key generation
 echo "Building keys (might take a while)"
 cd /etc/openvpn/easy-rsa/ || exit
-cp /etc/ssl/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl.cnf
+cp /etc/openvpn/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl.cnf
 # shellcheck disable=SC1091
 source vars
 ./clean-all
