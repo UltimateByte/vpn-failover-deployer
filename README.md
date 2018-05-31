@@ -73,7 +73,7 @@ mv client/*.conf /etc/openvpn
 
 ```bash
 chown -R root:root /etc/openvpn
-chmod 750 /etc/openvpn/client /etc/openvpn/easy-rsa*
+chmod 750 /etc/openvpn/client
 ```
 
 * Start the service (replace ${vpnname} with your actual server name)
