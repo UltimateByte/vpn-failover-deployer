@@ -37,7 +37,7 @@ vpnname="" # Give a lowercase simple VPN name
 serverip="" # Listening IP local and public
 failover="" # VPN dedicated IP
 ```
-`vpnname` is just a name to know which VPN this is (you can deploy multiple ones)  
+`vpnname` is just a name to know which VPN this is (you can deploy multiple ones)  !! No caps, no numbers, it's a service name > "More simple, more better"
 `serverip` is the IP of your VPN server, usually the main IP of your machine  
 `failover` is the additional IP you wish to bind your server to  
 
