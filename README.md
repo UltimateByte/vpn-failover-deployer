@@ -9,8 +9,9 @@ It allows you to:
 * Have a fixed IP address
 
 ## Requirements
+- Know the basics of OpenVPN and iptables, even though this script should help a lot
 - Have a dedicated server with at least two IPs (one additional IP per VPN)
-- Have OpenVPN installed
+- Have openvpn and openssl installed
 - Have iptables available (most distro do)
 
 ## Compatibility
