@@ -13,7 +13,7 @@ It allows you to:
 - Have a dedicated server with at least two IPs (one additional IP per VPN)
 - Have openvpn and openssl installed
 - Have iptables available (most distro do)
-- If you're running a cheap VM, be preparte to diagnose OpenVPN on the server using logs in /var/log and google.
+- If you're running a cheap VPS, some limitations might occur, you might have to diagnose OpenVPN on the server using logs in /var/log and google.
 
 ## Compatibility
 Was tested only with Debian 9, might work with other distro.
